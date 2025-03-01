@@ -1,26 +1,9 @@
-
-from setup_and_utils import *
 from training_data import *
-
-
-#QCBM Circuit
 from scipy.special import comb
 
 total_qubits = n_qubits + n_ancillas
 dev = qml.device("default.qubit",wires=total_qubits)
 
-#Load the trained cat model
-
-# with open('/home/akashm/PROJECT/Hiwi_qml/qcbm/cat_anticat/4model2_cat_anticat_distribution.pkl',"rb") as file:
-#     params = pickle.load(file)
-
-# final_epoch = params['final_epoch'],
-# kl_div = params['divs']
-# trained_params = params['parameters']
-
-# optimal_params = trained_params[np.argmin(kl_div)]
-
- 
 #QCBM Circuit - RZ + IsingXY + IsingZZ    
 def qcbm_circuit(params,total_qubits=total_qubits):
     
@@ -31,68 +14,61 @@ def qcbm_circuit(params,total_qubits=total_qubits):
     for i in range(total_qubits-1):
         qml.IsingXY(ising_params[i],wires=[i,i+1])
     qml.IsingXY(ising_params[total_qubits-1],wires=[total_qubits-1,0])
-    
-    ##For Decoder2 for faster convergence
-    # for i in range(total_qubits-2):
-    #     qml.IsingXY(ising_params[total_qubits+i],wires=[i,i+2])
-        
     for i in range(total_qubits-1):
         qml.IsingZZ(ising_params[i],wires=[i,i+1])
     qml.IsingZZ(ising_params[total_qubits-1],wires=[total_qubits-1,0])
     
     
     
-folds = 8
+# Define folds for each part of the circuit
+vqc_folds = 3
+qcbm_folds = 8
+
 # Initialize a JAX random key
 key = jax.random.PRNGKey(0)
-# Generate initial parameters as a JAX array
-# initial_params = jax.random.uniform(key, shape=(folds, (4 * total_qubits) - 1), minval=0.0, maxval=1.0)
-initial_params = jax.random.uniform(key, shape=(folds, (3 * n_qubits)+(3*total_qubits)), minval=0.0, maxval=1.0)
+key_vqc, key_qcbm = jax.random.split(key)  # Split the random key for different parts
+
+# Generate random parameters for VQC circuit
+vqc_params = jax.random.uniform(key_vqc, shape=(vqc_folds, 3 * n_qubits), minval=0.0, maxval=1.0)
+# Generate random parameters for QCBM circuit
+qcbm_params = jax.random.uniform(key_qcbm, shape=(qcbm_folds, 3 * total_qubits), minval=0.0, maxval=1.0)
+
+# Concatenate along the first axis (stacking the parameters)
+initial_params = (vqc_params, qcbm_params)
 
 
 # QCBM Circuit - RX + RZ + CNOT    
-def anticat_circuit(params,total_qubits=n_qubits):
+def vqc_circuit(params,total_qubits=n_qubits):
     
     rz_params = params[:total_qubits]
     ising_params = params[total_qubits:]
-    # for i in range(total_qubits):
-    #     qml.RX(rz_params[i],wires=n_qubits+i)
-    # for i in range(n_qubits,n_qubits+total_qubits-1):
-    #     qml.CNOT(wires=[i,i+1])
-    # qml.CNOT(wires=[n_qubits+total_qubits-1,n_qubits])
-    
+
     for i in range(total_qubits):
-        qml.RZ(rz_params[i],wires=n_qubits+i)
-    for i in range(n_qubits,n_qubits+total_qubits-1):
+        qml.RZ(rz_params[i],wires=i)
+    for i in range(n_qubits-1):
         qml.IsingXY(ising_params[i],wires=[i,i+1])
-    qml.IsingXY(ising_params[i],wires=[n_qubits+total_qubits-1,n_qubits])
-    for i in range(n_qubits,n_qubits+total_qubits-1):
+    qml.IsingXY(ising_params[i],wires=[n_qubits-1,0])
+    for i in range(n_qubits-1):
         qml.IsingZZ(ising_params[i],wires=[i,i+1])
-    qml.IsingZZ(ising_params[i],wires=[n_qubits+total_qubits-1,n_qubits])
+    qml.IsingZZ(ising_params[i],wires=[n_qubits-1,0])
+
 
 # #Loading the original cat training data
-with open('/home/akashm/PROJECT/Hiwi_qml/qcbm/model_local_no_pretraining/data/4qubit_target_distribution.pkl',"rb") as file1:
+with open('/home/akashm/PROJECT/qcbm_hiwi/qcbm_project/cat_anticat/data/three_particle_distribution.pkl',"rb") as file1:
     cat_data = pickle.load(file1)
 cat_data = cat_data/np.linalg.norm(cat_data)
 
-with open('/home/akashm/PROJECT/Hiwi_qml/qcbm/cat_anticat/data/4qubit_anticat_distribution.pkl',"rb") as file2:
+with open('/home/akashm/PROJECT/qcbm_hiwi/qcbm_project/cat_anticat/data/three_particle_anticat_distribution.pkl',"rb") as file2:
     anticat_data = pickle.load(file2)
 anticat_data = anticat_data/np.linalg.norm(anticat_data)
+anticat_data = jnp.array(anticat_data)  # Convert to non-traced JAX array
 
-def pnumber_distribution(distribution, n_qubits):
-    p_distribution = jnp.zeros(n_qubits+1,dtype=jnp.float64)
-    for i in range(2**n_qubits):
-        binary_string = format(i,f'0{n_qubits}b')
-        num_of_ones = binary_string.count('1')
-        p_distribution = p_distribution.at[num_of_ones].add(distribution[i])
-    #Normalize the distribution
-    p_distribution/=p_distribution.sum()
-    return p_distribution
-
+#Particle Number based pretraining
 def uniform_init(num_qubits,distribution):
     
     all_states = np.array([format(i, f'0{num_qubits}b') for i in range(2**num_qubits)])
     amps = jnp.zeros(len(all_states),dtype=jnp.float64)
+    
     #uniform distribution of all possible states
     for i in range(len(all_states)):
         k = all_states[i]
@@ -100,36 +76,31 @@ def uniform_init(num_qubits,distribution):
         number_of_states_with_num_of_ones = comb(num_qubits, num_of_ones)
         amps = amps.at[i].set(distribution[num_of_ones] / number_of_states_with_num_of_ones)      
     amps = jnp.sqrt(amps)        
-    qml.StatePrep(amps,wires=range(n_qubits,n_qubits+num_qubits))
+    qml.StatePrep(amps,wires=range(num_qubits))
 
 
+cat_pre_training = pnumber_distribution(cat_data, n_qubits)
 
-anticat_pre_training = pnumber_distribution(anticat_data, n_qubits)
 
-# odd_wires = list(i for i in range(total_qubits) if i%2 != 0)
 @qml.qnode(dev,interface='jax')
-# @qml.qnode(dev)
 def circuit(input_params,num_qubits=n_qubits,ancilla_qubits=n_ancillas,total_qubits=total_qubits):
- 
-    #Initialize new cat
-    qml.QubitStateVector(cat_data,wires=list(i for i in range(n_qubits)))
-    # qml.BasisState(jnp.zeros(n_qubits, dtype=jnp.int32), wires=list(range(n_qubits,total_qubits)))
-    uniform_init(n_qubits,anticat_pre_training)
-
     
-    #Circuit for Anticat intialization
-    for i in range(3):
-        anticat_circuit(input_params[i])
-
-    # for i in range(total_qubits):
-    #     if i%2 == 0:
-    #         qml.X(i)
-        
-    for i in range(8):
-        # qml.Barrier(range(total_qubits))
-        qml.adjoint(qcbm_circuit)(params=input_params[i,:])
+    vqc_params = input_params[0]
+    qcbm_params = input_params[1]
+    
+    #Top Half of the circuit -- Cat Pretraining +VQC
+    uniform_init(num_qubits,cat_pre_training)
+    for i in range(vqc_folds):
+        vqc_circuit(vqc_params[i])
+    
+    #Bottom Half of the circuit -- Anticat
+    qml.QubitStateVector(jax.lax.stop_gradient(anticat_data),wires=list(i for i in range(n_qubits,total_qubits)))
+    
+    #Adjoint of QCBM circuit
+    for i in range(qcbm_folds):
+        qml.adjoint(qcbm_circuit)(params=qcbm_params[i,:])
     
     ##Measurement of all qubits
-    output1 = qml.probs(wires=list(i for i in range(total_qubits) if i%2 == 0))
-    output2 = qml.probs(wires=list(i for i in range(total_qubits) if i%2 != 0))
+    output1 = qml.probs(wires=list(i for i in range(num_qubits)))
+    output2 = qml.probs(wires=list(i for i in range(num_qubits,total_qubits)))
     return [output1, output2]

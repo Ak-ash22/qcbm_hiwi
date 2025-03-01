@@ -84,3 +84,31 @@ def gaussian(n_qubits,x_array):
     area = trapezoid(gaussian_distribution,x_array)
     gaussian_distribution /= area
     return gaussian_distribution
+
+import jax.numpy as jnp
+from itertools import combinations
+
+def three_particle_distribution(n_qubits,x_array):
+    """
+    Generate a probability distribution where only bitstrings with exactly 3 ones 
+    have nonzero probability for an arbitrary n-qubit system.
+    
+    Parameters:
+    - n_qubits: int, total number of qubits
+    
+    Returns:
+    - distribution: JAX array with probability values
+    """
+    assert n_qubits >= 3, "Number of qubits must be at least 3 to have 3-particle states."
+
+    # Get all bit positions where exactly 3 bits are 1
+    valid_indices = [sum(1 << i for i in comb) for comb in combinations(range(n_qubits), 3)]
+    
+    # Create a zero-initialized probability distribution for 2^n states
+    distribution = jnp.zeros(2**n_qubits, dtype=jnp.float64)
+
+    # Assign equal probability to valid states
+    distribution = distribution.at[jnp.array(valid_indices)].set(1.0 / len(valid_indices))
+    area = trapezoid(distribution,x_array)
+    distribution /= area
+    return distribution
