@@ -15,16 +15,12 @@ def qcbm_circuit(params,total_qubits):
     
     rz_params = params[:total_qubits]
     ising_params = params[total_qubits:]
+    
     for i in range(total_qubits):
         qml.RZ(rz_params[i],wires=i)
     for i in range(total_qubits-1):
         qml.IsingXY(ising_params[i],wires=[i,i+1])
     qml.IsingXY(ising_params[total_qubits-1],wires=[total_qubits-1,0])
-    
-    ###For Decoder2 for faster convergence
-    # for i in range(total_qubits-2):
-    #     qml.IsingXY(ising_params[total_qubits+i],wires=[i,i+2])
-        
     for i in range(total_qubits-1):
         qml.IsingZZ(ising_params[i],wires=[i,i+1])
     qml.IsingZZ(ising_params[total_qubits-1],wires=[total_qubits-1,0])
