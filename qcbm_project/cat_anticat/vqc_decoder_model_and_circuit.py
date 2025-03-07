@@ -7,16 +7,19 @@ dev = qml.device("default.qubit",wires=total_qubits)
 #QCBM Circuit - RZ + IsingXY + IsingZZ    
 def qcbm_circuit(params,total_qubits=total_qubits):
     
-    rz_params = params[3*n_qubits:3*n_qubits+total_qubits]
-    ising_params = params[3*n_qubits+total_qubits:]
+    rz_params = params[:total_qubits]
+    ising_params1 = params[total_qubits:2*total_qubits-1]
+    ising_params2 = params[2*total_qubits-1:]
+    
+    
     for i in range(total_qubits):
         qml.RZ(rz_params[i],wires=i)
     for i in range(total_qubits-1):
-        qml.IsingXY(ising_params[i],wires=[i,i+1])
-    qml.IsingXY(ising_params[total_qubits-1],wires=[total_qubits-1,0])
+        qml.IsingXY(ising_params1[i],wires=[i,i+1])
+    qml.IsingXY(ising_params1[-1],wires=[total_qubits-1,0])
     for i in range(total_qubits-1):
-        qml.IsingZZ(ising_params[i],wires=[i,i+1])
-    qml.IsingZZ(ising_params[total_qubits-1],wires=[total_qubits-1,0])
+        qml.IsingZZ(ising_params2[i],wires=[i,i+1])
+    qml.IsingZZ(ising_params2[-1],wires=[total_qubits-1,0])
     
     
     
@@ -37,28 +40,42 @@ qcbm_params = jax.random.uniform(key_qcbm, shape=(qcbm_folds, 3 * total_qubits),
 initial_params = (vqc_params, qcbm_params)
 
 
-# QCBM Circuit - RX + RZ + CNOT    
 def vqc_circuit(params,total_qubits=n_qubits):
     
-    rz_params = params[:total_qubits]
-    ising_params = params[total_qubits:]
+    rz_params = params[:n_qubits]
+    ising_params1 = params[n_qubits:2*n_qubits]
+    ising_params2 = params[2*n_qubits:]
 
     for i in range(total_qubits):
         qml.RZ(rz_params[i],wires=i)
     for i in range(n_qubits-1):
-        qml.IsingXY(ising_params[i],wires=[i,i+1])
-    qml.IsingXY(ising_params[i],wires=[n_qubits-1,0])
+        qml.IsingXY(ising_params1[i],wires=[i,i+1])
+    qml.IsingXY(ising_params1[-1],wires=[n_qubits-1,0])
     for i in range(n_qubits-1):
-        qml.IsingZZ(ising_params[i],wires=[i,i+1])
-    qml.IsingZZ(ising_params[i],wires=[n_qubits-1,0])
+        qml.IsingZZ(ising_params2[i],wires=[i,i+1])
+    qml.IsingZZ(ising_params2[-1],wires=[n_qubits-1,0])
+    
+    ##Circuit - RX + RZ + CNOT    
+    # rx_params = params[:n_qubits]
+    # ry_params = params[n_qubits:2*n_qubits]
+    # rz_params = params[2*n_qubits:]
+    
+    # for i in range(total_qubits):
+    #     qml.RX(rx_params[i],wires=i)
+    #     qml.RY(ry_params[i],wires=i)
+    #     qml.RZ(rz_params[i],wires=i)
+    # for i in range(total_qubits-1):
+    #     qml.CNOT(wires=[i,i+1])
+    # qml.CNOT(wires=[total_qubits-1,0])
+    
 
 
 # #Loading the original cat training data
-with open('/home/akashm/PROJECT/qcbm_hiwi/qcbm_project/cat_anticat/data/three_particle_distribution.pkl',"rb") as file1:
+with open('/home/akashm/PROJECT/qcbm_hiwi/qcbm_project/model_local_no_pretraining/data/4qubit_target_distribution.pkl',"rb") as file1:
     cat_data = pickle.load(file1)
 cat_data = cat_data/np.linalg.norm(cat_data)
 
-with open('/home/akashm/PROJECT/qcbm_hiwi/qcbm_project/cat_anticat/data/three_particle_anticat_distribution.pkl',"rb") as file2:
+with open('/home/akashm/PROJECT/qcbm_hiwi/qcbm_project/cat_anticat/data/4qubit_anticat_distribution.pkl',"rb") as file2:
     anticat_data = pickle.load(file2)
 anticat_data = anticat_data/np.linalg.norm(anticat_data)
 anticat_data = jnp.array(anticat_data)  # Convert to non-traced JAX array
@@ -90,6 +107,7 @@ def circuit(input_params,num_qubits=n_qubits,ancilla_qubits=n_ancillas,total_qub
     
     #Top Half of the circuit -- Cat Pretraining +VQC
     uniform_init(num_qubits,cat_pre_training)
+    # qml.BasisState(jnp.zeros(n_qubits, dtype=jnp.int32), wires=list(range(n_qubits)))
     for i in range(vqc_folds):
         vqc_circuit(vqc_params[i])
     
