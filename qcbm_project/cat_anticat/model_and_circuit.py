@@ -14,16 +14,18 @@ dev = qml.device("default.qubit",wires=total_qubits)
 def qcbm_circuit(params,total_qubits):
     
     rz_params = params[:total_qubits]
-    ising_params = params[total_qubits:]
+    ising_params1 = params[total_qubits:2*total_qubits]
+    ising_params2 = params[2*total_qubits:]
     
     for i in range(total_qubits):
         qml.RZ(rz_params[i],wires=i)
     for i in range(total_qubits-1):
-        qml.IsingXY(ising_params[i],wires=[i,i+1])
-    qml.IsingXY(ising_params[total_qubits-1],wires=[total_qubits-1,0])
+        qml.IsingXY(ising_params1[i],wires=[i,i+1])
+    qml.IsingXY(ising_params1[-1],wires=[total_qubits-1,0])
     for i in range(total_qubits-1):
-        qml.IsingZZ(ising_params[i],wires=[i,i+1])
-    qml.IsingZZ(ising_params[total_qubits-1],wires=[total_qubits-1,0])
+        qml.IsingZZ(ising_params2[i],wires=[i,i+1])
+    qml.IsingZZ(ising_params2[-1],wires=[total_qubits-1,0])
+    
     
 folds = 8
 # Initialize a JAX random key
