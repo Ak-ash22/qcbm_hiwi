@@ -27,14 +27,15 @@ def qcbm_circuit(params,total_qubits):
     qml.IsingZZ(ising_params2[-1],wires=[total_qubits-1,0])
     
     
-folds = 8
-# Initialize a JAX random key
+folds = 6
+# # Initialize a JAX random key
 key = jax.random.PRNGKey(0)
-# Generate initial parameters as a JAX array
+# # Generate initial parameters as a JAX array
 # initial_params = jax.random.uniform(key, shape=(folds, (4 * total_qubits) - 1), minval=0.0, maxval=1.0)
 initial_params = jax.random.uniform(key, shape=(folds, (3 * total_qubits)), minval=0.0, maxval=1.0)
 
 @qml.qnode(dev,interface='jax')
+# def circuit(input_params,folds,num_qubits=n_qubits,ancilla_qubits=n_ancillas,total_qubits=total_qubits):
 def circuit(input_params,num_qubits=n_qubits,ancilla_qubits=n_ancillas,total_qubits=total_qubits):
 
     #Random state for pretraining
