@@ -129,3 +129,4 @@ def circuit(input_params,vqc_folds,qcbm_folds,num_qubits=n_qubits,ancilla_qubits
     output1 = qml.probs(wires=list(i for i in range(total_qubits) if i%2 != 0))
     output2 = qml.probs(wires=list(i for i in range(total_qubits) if i%2 == 0))
     return [output1, output2]
+
