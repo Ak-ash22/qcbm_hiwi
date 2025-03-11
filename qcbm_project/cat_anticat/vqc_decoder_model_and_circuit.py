@@ -8,8 +8,8 @@ dev = qml.device("default.qubit",wires=total_qubits)
 def qcbm_circuit(params,total_qubits=total_qubits):
     
     rz_params = params[:total_qubits]
-    ising_params1 = params[total_qubits:2*total_qubits-1]
-    ising_params2 = params[2*total_qubits-1:]
+    ising_params1 = params[total_qubits:2*total_qubits]
+    ising_params2 = params[2*total_qubits:]
     
     
     for i in range(total_qubits):
@@ -20,6 +20,7 @@ def qcbm_circuit(params,total_qubits=total_qubits):
     for i in range(total_qubits-1):
         qml.IsingZZ(ising_params2[i],wires=[i,i+1])
     qml.IsingZZ(ising_params2[-1],wires=[total_qubits-1,0])
+
     
     
     
