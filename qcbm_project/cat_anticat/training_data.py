@@ -11,15 +11,15 @@ n_extra_qubits = 0
 
 def create_target_distribution(n_qubits):
     x_full = jnp.arange(0,2**n_qubits,dtype=jnp.float64)
-    # x_split = jnp.array_split(x_full,4)
-    # y1 = relu(x_split[0])
-    # y2 = sigmoid(x_split[1] - x_split[1][0])
+    x_split = jnp.array_split(x_full,2)
+    y1 = relu(x_split[0])
+    y2 = sigmoid(x_split[1] - x_split[1][0])
     # y3 = elu(x_split[2] - x_split[2][0])
     # y4 = tanh(x_split[3] - x_split[3][0])
-    # target_distribution = jnp.concatenate([y1,y2,y3,y4], dtype=jnp.float64)
-    # target_distribution /= trapezoid(target_distribution)
+    target_distribution = jnp.concatenate([y1,y2], dtype=jnp.float64)
+    target_distribution /= trapezoid(target_distribution)
     
-    target_distribution = three_particle_distribution(n_qubits,x_full)
+    # target_distribution = three_particle_distribution(n_qubits,x_full)
     return target_distribution
 
 #Particle number distribution
@@ -41,6 +41,6 @@ target_distribution = create_target_distribution(n_qubits)
 # targetp_distribution = pnumber_distribution(target_distribution, n_qubits)
 
 if __name__ == "__main__":
-    save_distribution("/home/akashm/PROJECT/qcbm_hiwi/qcbm_project/cat_anticat/data/three_particle_distribution.pkl", target_distribution)
+    save_distribution("/home/akashm/PROJECT/qcbm_hiwi/qcbm_project/cat_anticat/data/4qubit_trial_distribution.pkl", target_distribution)
     # save_distribution("pnumber_distribution.pkl", targetp_distribution)
     print("Target distribution and Particle Number distribution saved!")

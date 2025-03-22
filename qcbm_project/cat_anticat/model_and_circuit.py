@@ -27,7 +27,7 @@ def qcbm_circuit(params,total_qubits):
     qml.IsingZZ(ising_params2[-1],wires=[total_qubits-1,0])
     
     
-folds = 6
+folds = 3
 # # Initialize a JAX random key
 key = jax.random.PRNGKey(0)
 # # Generate initial parameters as a JAX array
