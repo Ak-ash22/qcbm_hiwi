@@ -7,51 +7,52 @@ dev = qml.device("default.qubit",wires=total_qubits)
 #QCBM Circuit - RZ + IsingXY + IsingZZ    
 def qcbm_circuit(params,total_qubits=total_qubits):
     
-    # rz_params = params[:total_qubits]
-    # ising_params1 = params[total_qubits:2*total_qubits]
-    # ising_params2 = params[2*total_qubits:]
+    rz_params = params[:total_qubits]
+    ising_params1 = params[total_qubits:2*total_qubits]
+    ising_params2 = params[2*total_qubits:]
     
-    
-    # for i in range(total_qubits):
-    #     qml.RZ(rz_params[i],wires=i)
-    # for i in range(total_qubits-1):
-    #     qml.IsingXY(ising_params1[i],wires=[i,i+1])
-    # qml.IsingXY(ising_params1[-1],wires=[total_qubits-1,0])
-    # for i in range(total_qubits-1):
-    #     qml.IsingZZ(ising_params2[i],wires=[i,i+1])
-    # qml.IsingZZ(ising_params2[-1],wires=[total_qubits-1,0])
-    
-    ##Full Entanglement Circuit
-    rx_params = params[:total_qubits]
-    ry_params = params[total_qubits:2*total_qubits]
-    rz_params = params[2*total_qubits:]
     
     for i in range(total_qubits):
-        qml.RX(rx_params[i],wires=i)
-        qml.RY(ry_params[i],wires=i)
         qml.RZ(rz_params[i],wires=i)
     for i in range(total_qubits-1):
-        qml.CNOT(wires=[i,i+1])
-    qml.CNOT(wires=[total_qubits-1,0])
+        qml.IsingXY(ising_params1[i],wires=[i,i+1])
+    qml.IsingXY(ising_params1[-1],wires=[total_qubits-1,0])
+    for i in range(total_qubits-1):
+        qml.IsingZZ(ising_params2[i],wires=[i,i+1])
+    qml.IsingZZ(ising_params2[-1],wires=[total_qubits-1,0])
+    
+    # ##Full Entanglement Circuit
+    # rx_params = params[:total_qubits]
+    # ry_params = params[total_qubits:2*total_qubits]
+    # rz_params = params[2*total_qubits:]
+    
+    # for i in range(total_qubits):
+    #     qml.RX(rx_params[i],wires=i)
+    #     qml.RY(ry_params[i],wires=i)
+    #     qml.RZ(rz_params[i],wires=i)
+    # for i in range(total_qubits-1):
+    #     qml.CNOT(wires=[i,i+1])
+    # qml.CNOT(wires=[total_qubits-1,0])
 
     
     
-    
-# # Define folds for each part of the circuit
-# vqc_folds = 3
-# qcbm_folds = 6
+################# Comment the following set of code if you want to run for the avg_vqc_work 
+# Define folds for each part of the circuit
+vqc_folds = 3
+qcbm_folds = 6
 
-# # Initialize a JAX random key
-# key = jax.random.PRNGKey(0)
-# key_vqc, key_qcbm = jax.random.split(key)  # Split the random key for different parts
+# Initialize a JAX random key
+key = jax.random.PRNGKey(0)
+key_vqc, key_qcbm = jax.random.split(key)  # Split the random key for different parts
 
-# # Generate random parameters for VQC circuit
-# vqc_params = jax.random.uniform(key_vqc, shape=(vqc_folds, 3 * n_qubits), minval=0.0, maxval=1.0)
-# # Generate random parameters for QCBM circuit
-# qcbm_params = jax.random.uniform(key_qcbm, shape=(qcbm_folds, 3 * total_qubits), minval=0.0, maxval=1.0)
+# Generate random parameters for VQC circuit
+vqc_params = jax.random.uniform(key_vqc, shape=(vqc_folds, 3 * n_qubits), minval=0.0, maxval=1.0)
+# Generate random parameters for QCBM circuit
+qcbm_params = jax.random.uniform(key_qcbm, shape=(qcbm_folds, 3 * total_qubits), minval=0.0, maxval=1.0)
 
-# # Concatenate along the first axis (stacking the parameters)
-# initial_params = (vqc_params, qcbm_params)
+# Concatenate along the first axis (stacking the parameters)
+initial_params = (vqc_params, qcbm_params)
+
 
 
 def vqc_circuit(params,total_qubits=n_qubits):
@@ -69,7 +70,7 @@ def vqc_circuit(params,total_qubits=n_qubits):
         qml.IsingZZ(ising_params2[i],wires=[i,i+1])
     qml.IsingZZ(ising_params2[-1],wires=[n_qubits-1,0])
     
-    ##Circuit - RX + RZ + CNOT    
+    # #Circuit - RX + RZ + CNOT    
     # rx_params = params[:n_qubits]
     # ry_params = params[n_qubits:2*n_qubits]
     # rz_params = params[2*n_qubits:]
@@ -119,8 +120,12 @@ anticat_pre_training = pnumber_distribution(anticat_data, n_qubits)
 
 
 @qml.qnode(dev,interface='jax')
-def circuit(input_params,vqc_folds,qcbm_folds,num_qubits=n_qubits,ancilla_qubits=n_ancillas,total_qubits=total_qubits):
-       
+
+################# Comment the following set of code if you want to run for the avg_vqc_work
+# def circuit(input_params,vqc_folds,qcbm_folds,num_qubits=n_qubits,ancilla_qubits=n_ancillas,total_qubits=total_qubits):
+
+################ Comment the following set of code if you want to run for the avg_vqc_work
+def circuit(input_params,vqc_folds=vqc_folds,qcbm_folds=qcbm_folds,num_qubits=n_qubits,ancilla_qubits=n_ancillas,total_qubits=total_qubits):    
     vqc_params = input_params[0]
     qcbm_params = input_params[1]
     
@@ -140,7 +145,7 @@ def circuit(input_params,vqc_folds,qcbm_folds,num_qubits=n_qubits,ancilla_qubits
         qml.adjoint(qcbm_circuit)(params=qcbm_params[i,:])
         
     ##Measurement of all qubits
-    output1 = qml.probs(wires=list(i for i in range(total_qubits) if i%2 != 0))
-    output2 = qml.probs(wires=list(i for i in range(total_qubits) if i%2 == 0))
+    output1 = qml.probs(wires=list(i for i in range(total_qubits) if i%2 != 0)) #Odd qubits
+    output2 = qml.probs(wires=list(i for i in range(total_qubits) if i%2 == 0)) #Even qubits
     return [output1, output2]
 
