@@ -57,31 +57,31 @@ initial_params = (vqc_params, qcbm_params)
 
 def vqc_circuit(params,total_qubits=n_qubits):
     
-    rz_params = params[:n_qubits]
-    ising_params1 = params[n_qubits:2*n_qubits]
-    ising_params2 = params[2*n_qubits:]
+    # rz_params = params[:n_qubits]
+    # ising_params1 = params[n_qubits:2*n_qubits]
+    # ising_params2 = params[2*n_qubits:]
 
-    for i in range(total_qubits):
-        qml.RZ(rz_params[i],wires=i)
-    for i in range(n_qubits-1):
-        qml.IsingXY(ising_params1[i],wires=[i,i+1])
-    qml.IsingXY(ising_params1[-1],wires=[n_qubits-1,0])
-    for i in range(n_qubits-1):
-        qml.IsingZZ(ising_params2[i],wires=[i,i+1])
-    qml.IsingZZ(ising_params2[-1],wires=[n_qubits-1,0])
-    
-    # #Circuit - RX + RZ + CNOT    
-    # rx_params = params[:n_qubits]
-    # ry_params = params[n_qubits:2*n_qubits]
-    # rz_params = params[2*n_qubits:]
-    
     # for i in range(total_qubits):
-    #     qml.RX(rx_params[i],wires=i)
-    #     qml.RY(ry_params[i],wires=i)
     #     qml.RZ(rz_params[i],wires=i)
-    # for i in range(total_qubits-1):
-    #     qml.CNOT(wires=[i,i+1])
-    # qml.CNOT(wires=[total_qubits-1,0])
+    # for i in range(n_qubits-1):
+    #     qml.IsingXY(ising_params1[i],wires=[i,i+1])
+    # qml.IsingXY(ising_params1[-1],wires=[n_qubits-1,0])
+    # for i in range(n_qubits-1):
+    #     qml.IsingZZ(ising_params2[i],wires=[i,i+1])
+    # qml.IsingZZ(ising_params2[-1],wires=[n_qubits-1,0])
+    
+    #Circuit - RX + RZ + CNOT    
+    rx_params = params[:n_qubits]
+    ry_params = params[n_qubits:2*n_qubits]
+    rz_params = params[2*n_qubits:]
+    
+    for i in range(total_qubits):
+        qml.RX(rx_params[i],wires=i)
+        qml.RY(ry_params[i],wires=i)
+        qml.RZ(rz_params[i],wires=i)
+    for i in range(total_qubits-1):
+        qml.CNOT(wires=[i,i+1])
+    qml.CNOT(wires=[total_qubits-1,0])
     
 
 
@@ -129,14 +129,16 @@ def circuit(input_params,vqc_folds=vqc_folds,qcbm_folds=qcbm_folds,num_qubits=n_
     qcbm_params = input_params[1]
     
     #Top Half of the circuit -- Cat Pretraining +VQC
-    uniform_init(num_qubits,cat_pre_training,seed=0)
-    # qml.BasisState(jnp.zeros(n_qubits, dtype=jnp.int32), wires=list(range(n_qubits)))
+    
+    ############################# For Ising based VQC
+    # uniform_init(num_qubits,cat_pre_training,seed=0)
+    
+    ############################# For CNOT based VQC
+    qml.BasisState(jnp.zeros(n_qubits, dtype=jnp.int32), wires=list(range(n_qubits)))
 
     for i in range(vqc_folds):
         vqc_circuit(vqc_params[i])
-    
-    # qml.QubitStateVector(jax.lax.stop_gradient(cat_data),wires=list(i for i in range(n_qubits)))
-        
+     
     #Bottom Half of the circuit -- Anticat
     qml.QubitStateVector(jax.lax.stop_gradient(anticat_data),wires=list(i for i in range(n_qubits,total_qubits)))
     # uniform_init(num_qubits,anticat_pre_training,seed=1)
@@ -145,8 +147,12 @@ def circuit(input_params,vqc_folds=vqc_folds,qcbm_folds=qcbm_folds,num_qubits=n_
     for i in range(qcbm_folds):
         qml.adjoint(qcbm_circuit)(params=qcbm_params[i,:])
         
-    ##Measurement of all qubits
+    ############################ For Superposition of a particular half particle states
     output1 = qml.probs(wires=list(i for i in range(total_qubits) if i%2 != 0)) #Odd qubits
     output2 = qml.probs(wires=list(i for i in range(total_qubits) if i%2 == 0)) #Even qubits
     return [output1, output2]
+    
+    ############################ For Superposition of all half particle states
+    # output = qml.probs(wires=list(range(total_qubits)))
+    # return output
 
