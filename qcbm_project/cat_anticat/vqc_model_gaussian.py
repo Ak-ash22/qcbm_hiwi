@@ -7,32 +7,32 @@ dev = qml.device("default.qubit",wires=total_qubits)
 #QCBM Circuit - RZ + IsingXY + IsingZZ    
 def qcbm_circuit(params,total_qubits=total_qubits):
     
-    rz_params = params[:total_qubits]
-    ising_params1 = params[total_qubits:2*total_qubits]
-    ising_params2 = params[2*total_qubits:]
+    # rz_params = params[:total_qubits]
+    # ising_params1 = params[total_qubits:2*total_qubits]
+    # ising_params2 = params[2*total_qubits:]
     
-    
-    for i in range(total_qubits):
-        qml.RZ(rz_params[i],wires=i)
-    for i in range(total_qubits-1):
-        qml.IsingXY(ising_params1[i],wires=[i,i+1])
-    qml.IsingXY(ising_params1[-1],wires=[total_qubits-1,0])
-    for i in range(total_qubits-1):
-        qml.IsingZZ(ising_params2[i],wires=[i,i+1])
-    qml.IsingZZ(ising_params2[-1],wires=[total_qubits-1,0])
-    
-    # ##Full Entanglement Circuit
-    # rx_params = params[:total_qubits]
-    # ry_params = params[total_qubits:2*total_qubits]
-    # rz_params = params[2*total_qubits:]
     
     # for i in range(total_qubits):
-    #     qml.RX(rx_params[i],wires=i)
-    #     qml.RY(ry_params[i],wires=i)
     #     qml.RZ(rz_params[i],wires=i)
     # for i in range(total_qubits-1):
-    #     qml.CNOT(wires=[i,i+1])
-    # qml.CNOT(wires=[total_qubits-1,0])
+    #     qml.IsingXY(ising_params1[i],wires=[i,i+1])
+    # qml.IsingXY(ising_params1[-1],wires=[total_qubits-1,0])
+    # for i in range(total_qubits-1):
+    #     qml.IsingZZ(ising_params2[i],wires=[i,i+1])
+    # qml.IsingZZ(ising_params2[-1],wires=[total_qubits-1,0])
+    
+    # ##Full Entanglement Circuit
+    rx_params = params[:total_qubits]
+    ry_params = params[total_qubits:2*total_qubits]
+    rz_params = params[2*total_qubits:]
+    
+    for i in range(total_qubits):
+        qml.RX(rx_params[i],wires=i)
+        qml.RY(ry_params[i],wires=i)
+        qml.RZ(rz_params[i],wires=i)
+    for i in range(total_qubits-1):
+        qml.CNOT(wires=[i,i+1])
+    qml.CNOT(wires=[total_qubits-1,0])
 
     
     
@@ -90,7 +90,7 @@ with open('/home/akashm/PROJECT/qcbm_hiwi/qcbm_project/cat_anticat/data/4qubit_t
     cat_data = pickle.load(file1)
 cat_data = cat_data/np.linalg.norm(cat_data)
 
-with open('/home/akashm/PROJECT/qcbm_hiwi/qcbm_project/cat_anticat/data/4qubit_anticat_distribution.pkl',"rb") as file2:
+with open('/home/akashm/PROJECT/qcbm_hiwi/qcbm_project/cat_anticat/data/4qubit_gaussian_anticat_distribution.pkl',"rb") as file2:
     anticat_data = pickle.load(file2)
 anticat_data = anticat_data/np.linalg.norm(anticat_data)
 
