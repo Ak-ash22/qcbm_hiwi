@@ -7,13 +7,13 @@
     999
   ],
   "max_accuracy_per_seed": [
-    0.688,
-    0.663,
-    0.653,
-    0.721,
-    0.666
+    0.651,
+    0.685,
+    0.658,
+    0.697,
+    0.656
   ],
-  "mean_best_accuracy": 0.6782,
-  "standard deviation": 0.024260255563369457,
+  "mean_best_accuracy": 0.6694000000000001,
+  "standard deviation": 0.018183509012289115,
   "note": "Data Sample Noise = 0.3\nZZ Feature Map\n"
 }
