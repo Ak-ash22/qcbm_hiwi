@@ -1,0 +1,19 @@
+{
+  "seeds": [
+    0,
+    42,
+    123,
+    2024,
+    999
+  ],
+  "max_accuracy_per_seed": [
+    0.743,
+    0.722,
+    0.725,
+    0.726,
+    0.722
+  ],
+  "mean_best_accuracy": 0.7276,
+  "standard deviation": 0.007863841300535006,
+  "note": "Data Sample Noise = 0.1\nZZ Feature Map\n"
+}
