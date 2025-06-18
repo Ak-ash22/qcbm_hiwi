@@ -1,0 +1,19 @@
+{
+  "seeds": [
+    0,
+    42,
+    123,
+    2024,
+    999
+  ],
+  "max_accuracy_per_seed": [
+    0.801,
+    0.792,
+    0.797,
+    0.798,
+    0.809
+  ],
+  "mean_best_accuracy": 0.7994000000000001,
+  "standard deviation": 0.00560713830755048,
+  "note": "Data Sample Noise = 0.3\nAmplitude Embedding - with Ancillas\n"
+}
