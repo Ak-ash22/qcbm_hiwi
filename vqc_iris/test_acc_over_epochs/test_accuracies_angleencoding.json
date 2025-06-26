@@ -1,0 +1,28 @@
+{
+  "test_accuracies": [
+    0.3,
+    0.3,
+    0.3,
+    0.25,
+    0.2,
+    0.2,
+    0.45,
+    0.55,
+    0.55,
+    0.55,
+    0.6,
+    0.6,
+    0.6,
+    0.6,
+    0.6,
+    0.6,
+    0.6,
+    0.6,
+    0.6,
+    0.6
+  ],
+  "No of Epochs": 20,
+  "seed": 42,
+  "data sample noise": 0.1,
+  "note": "Angle Embedding - Rotation 'X'\n"
+}

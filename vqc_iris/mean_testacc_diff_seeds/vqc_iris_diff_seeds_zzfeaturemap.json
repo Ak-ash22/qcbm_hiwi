@@ -1,0 +1,19 @@
+{
+  "seeds": [
+    0,
+    42,
+    123,
+    2024,
+    999
+  ],
+  "max_accuracy_per_seed": [
+    0.6,
+    0.7,
+    0.65,
+    0.75,
+    0.65
+  ],
+  "mean_best_accuracy": 0.6699999999999999,
+  "standard deviation": 0.05099019513592784,
+  "note": "ZZ Featuremap\n"
+}

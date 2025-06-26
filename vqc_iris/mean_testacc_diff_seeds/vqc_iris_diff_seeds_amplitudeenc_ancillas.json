@@ -1,0 +1,19 @@
+{
+  "seeds": [
+    0,
+    42,
+    123,
+    2024,
+    999
+  ],
+  "max_accuracy_per_seed": [
+    0.6,
+    0.6,
+    0.6,
+    0.6,
+    0.6
+  ],
+  "mean_best_accuracy": 0.6,
+  "standard deviation": 0.0,
+  "note": "Amplitude Encoding - With Ancillas\n"
+}
